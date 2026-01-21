@@ -1,46 +1,48 @@
-from flask import Flask, request, jsonify
+# index.py
 from crypto import encrypt_text, decrypt_text
+import json
 
-app = Flask(__name__)
+def handler(request):
+    try:
+        path = request.get("path", "/")
+        method = request.get("method", "GET")
+        body = request.get("body", {})
 
-@app.route("/", methods=["GET"])
-def home():
-    return jsonify({
-        "message": "Flask Encryption API is running",
-        "endpoints": {
-            "encrypt": "/encrypt",
-            "decrypt": "/decrypt"
-        }
-    })
+        if path == "/" and method == "GET":
+            return {
+                "statusCode": 200,
+                "headers": {"Content-Type": "application/json"},
+                "body": json.dumps({
+                    "message": "Python Encryption API is running",
+                    "endpoints": {
+                        "encrypt": "/encrypt",
+                        "decrypt": "/decrypt"
+                    }
+                })
+            }
 
+        elif path == "/encrypt" and method == "POST":
+            plaintext = body.get("plaintext", "")
+            seed = body.get("seed")
 
-@app.route("/encrypt", methods=["POST"])
-def encrypt():
-    data = request.get_json()
+            if plaintext == "" or seed is None:
+                return {"statusCode": 400, "body": json.dumps({"error": "plaintext dan seed wajib diisi"})}
 
-    plaintext = data.get("plaintext", "")
-    seed = data.get("seed")
+            ciphertext = encrypt_text(plaintext, int(seed))
+            return {"statusCode": 200, "body": json.dumps({"ciphertext": ciphertext})}
 
-    if plaintext == "" or seed is None:
-        return jsonify({"error": "plaintext dan seed wajib diisi"}), 400
+        elif path == "/decrypt" and method == "POST":
+            ciphertext = body.get("ciphertext", "")
+            seed = body.get("seed")
 
-    ciphertext = encrypt_text(plaintext, int(seed))
-    return jsonify({"ciphertext": ciphertext})
+            if ciphertext == "" or seed is None:
+                return {"statusCode": 400, "body": json.dumps({"error": "ciphertext dan seed wajib diisi"})}
 
+            plaintext = decrypt_text(ciphertext, int(seed))
+            return {"statusCode": 200, "body": json.dumps({"plaintext": plaintext})}
 
-@app.route("/decrypt", methods=["POST"])
-def decrypt():
-    data = request.get_json()
+        else:
+            return {"statusCode": 404, "body": json.dumps({"error": "endpoint tidak ditemukan"})}
 
-    ciphertext = data.get("ciphertext", "")
-    seed = data.get("seed")
-
-    if ciphertext == "" or seed is None:
-        return jsonify({"error": "ciphertext dan seed wajib diisi"}), 400
-
-    plaintext = decrypt_text(ciphertext, int(seed))
-    return jsonify({"plaintext": plaintext})
-
-if __name__ == "__main__":
-    app.run(debug=True)
-
+    except Exception as e:
+        return {"statusCode": 500, "body": json.dumps({"error": str(e)})}
