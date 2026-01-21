@@ -1,6 +1,6 @@
 from http.server import BaseHTTPRequestHandler
 import json
-from crypto import encrypt, decrypt
+from .crypto import encrypt, decrypt
 
 
 class handler(BaseHTTPRequestHandler):
