@@ -1,28 +1,34 @@
-from .crypto import encrypt_text, decrypt_text
+from http.server import BaseHTTPRequestHandler
 import json
+from crypto import encrypt, decrypt
 
-def handler(request):
-    path = request.get("path", "/")
-    method = request.get("method", "GET")
-    body = request.get("body", {})
 
-    if path == "/" and method == "GET":
-        return {
-            "statusCode": 200,
-            "headers": {"Content-Type": "application/json"},
-            "body": json.dumps({"message": "API is running"})
-        }
+class handler(BaseHTTPRequestHandler):
+    def do_POST(self):
+        length = int(self.headers["Content-Length"])
+        body = self.rfile.read(length)
+        data = json.loads(body)
 
-    elif path == "/encrypt" and method == "POST":
-        plaintext = body.get("plaintext", "")
-        seed = body.get("seed", 0)
-        ciphertext = encrypt_text(plaintext, int(seed))
-        return {"statusCode": 200, "body": json.dumps({"ciphertext": ciphertext})}
+        text = data.get("text", "")
+        seed = int(data.get("seed", 0))
+        mode = data.get("mode")
 
-    elif path == "/decrypt" and method == "POST":
-        ciphertext = body.get("ciphertext", "")
-        seed = body.get("seed", 0)
-        plaintext = decrypt_text(ciphertext, int(seed))
-        return {"statusCode": 200, "body": json.dumps({"plaintext": plaintext})}
+        if len(text) > 500:
+            self.send_response(413)
+            self.end_headers()
+            self.wfile.write(b"Text terlalu panjang")
+            return
 
-    return {"statusCode": 404, "body": json.dumps({"error": "endpoint not found"})}
+        if mode == "encrypt":
+            result = encrypt(text, seed)
+        elif mode == "decrypt":
+            result = decrypt(text, seed)
+        else:
+            result = "Invalid mode"
+
+        response = {"result": result}
+
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.end_headers()
+        self.wfile.write(json.dumps(response).encode())
