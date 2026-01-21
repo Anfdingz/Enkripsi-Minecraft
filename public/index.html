@@ -1,5 +1,19 @@
-<input id="text" placeholder="Text">
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Minecraft Crypto</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+
+<h2>🔐 Minecraft Encryption Tool</h2>
+
+<textarea id="text" rows="4" cols="40" placeholder="Masukkan text..."></textarea>
+<br><br>
+
 <input id="seed" type="number" placeholder="Seed">
+<br><br>
+
 <button onclick="send('encrypt')">Encrypt</button>
 <button onclick="send('decrypt')">Decrypt</button>
 
@@ -20,3 +34,6 @@ async function send(mode) {
   document.getElementById("result").innerText = data.result;
 }
 </script>
+
+</body>
+</html>
