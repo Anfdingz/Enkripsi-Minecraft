@@ -1,5 +1,5 @@
 # index.py
-from crypto import encrypt_text, decrypt_text
+from .crypto import encrypt_text, decrypt_text
 import json
 
 def handler(request):
