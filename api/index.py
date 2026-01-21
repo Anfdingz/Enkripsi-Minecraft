@@ -4,6 +4,15 @@ from .crypto import encrypt, decrypt
 
 
 class handler(BaseHTTPRequestHandler):
+
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header("Content-Type", "text/plain")
+        self.end_headers()
+        self.wfile.write(
+            b"Minecraft Crypto API is running. Use POST /api/index"
+        )
+
     def do_POST(self):
         length = int(self.headers["Content-Length"])
         body = self.rfile.read(length)
